@@ -61,3 +61,17 @@ document.getElementById('talk').onclick=async()=>{
   }catch(e){out.textContent='Error: '+(e.message||e)}
 };
 </script>
+<script>
+const _brain0=brain;
+brain=async function(q){
+  const l=q.toLowerCase();
+  const P=window.Capacitor.Plugins;
+  try{
+    if(l.includes('vibrate')){await P.Haptics.vibrate({duration:500});return 'Buzz buzz.'}
+    if(l.includes('battery')){const b=await P.Device.getBatteryInfo();return 'Your battery is at '+Math.round((b.batteryLevel||0)*100)+' percent.'}
+    if(l.includes('what time')||l.includes('the time')){return 'The time is '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'.'}
+    if(l.startsWith('play ')){const t=l.slice(5).trim();await P.AppLauncher.openUrl({url:'https://www.youtube.com/results?search_query='+encodeURIComponent(t)});return 'Searching YouTube for '+t+'.'}
+  }catch(e){return 'That action failed: '+(e.message||e)}
+  return _brain0(q);
+};
+</script>
