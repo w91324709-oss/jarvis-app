@@ -26,3 +26,10 @@ document.getElementById('talk').onclick=async()=>{
   }catch(e){out.textContent='Error: '+(e.message||e)}
 };
 </script></body></html>
+<script>
+function say(t){
+  const T=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TextToSpeech;
+  if(!T){out.textContent='Voice plugin not found.';return}
+  T.speak({text:t,lang:'en-US',rate:1.0,pitch:1.0,volume:1.0}).catch(e=>{out.textContent='Speak error: '+(e.message||e)});
+}
+</script>
