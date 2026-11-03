@@ -33,3 +33,31 @@ function say(t){
   T.speak({text:t,lang:'en-US',rate:1.0,pitch:1.0,volume:1.0}).catch(e=>{out.textContent='Speak error: '+(e.message||e)});
 }
 </script>
+<script>
+const GURL='https://api.groq.com/openai/v1/chat/completions';
+async function brain(q){
+  let k=localStorage.getItem('gk');
+  if(!k){k=(prompt('Paste your Groq key (kept only on this phone):')||'').trim();if(!k)throw new Error('No key entered');localStorage.setItem('gk',k)}
+  const r=await fetch(GURL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model:'openai/gpt-oss-20b',reasoning_effort:'low',messages:[{role:'system',content:'You are Jarvis, a friendly voice assistant. Reply in one or two short sentences, plain text only.'},{role:'user',content:q}]})});
+  if(r.status==401){localStorage.removeItem('gk');throw new Error('Key rejected. Tap again to re-enter it.')}
+  const d=await r.json();
+  return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'No answer.';
+}
+</script>
+<script>
+out.style.whiteSpace='pre-line';
+document.getElementById('talk').onclick=async()=>{
+  if(!SR){out.textContent='Speech plugin not found.';return}
+  try{
+    await SR.requestPermissions();
+    out.textContent='Listening...';
+    const r=await SR.start({language:'en-US',maxResults:1,prompt:'Ask Jarvis',partialResults:false,popup:true});
+    const heard=(r&&r.matches&&r.matches[0])||'';
+    if(!heard){out.textContent='I heard nothing.';return}
+    out.textContent='You: '+heard+'\nThinking...';
+    const ans=await brain(heard);
+    out.textContent='You: '+heard+'\nJarvis: '+ans;
+    say(ans);
+  }catch(e){out.textContent='Error: '+(e.message||e)}
+};
+</script>
