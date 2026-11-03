@@ -1,5 +1,9 @@
+
 {
   "appId": "com.jarvisapp.assistant",
   "appName": "Jarvis",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
 }
