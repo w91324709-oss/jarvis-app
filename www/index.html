@@ -113,3 +113,41 @@ brain=async function(q){
   return _brain2(q);
 };
     </script>
+<script>
+document.getElementById('talk').style.display='none';
+let running=false,paused=false,convoUntil=0;
+const WAKE=/\b(jarvis|computer|assistant)\b/i;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function say(t){
+  const T=window.Capacitor.Plugins.TextToSpeech;
+  if(!T){out.textContent='Voice plugin not found.';return Promise.resolve()}
+  return T.speak({text:t,lang:'en-US',rate:1.0,pitch:1.0,volume:1.0}).catch(e=>{out.textContent='Speak error: '+(e.message||e)});
+}
+async function turn(){
+  setS('listening');
+  let heard='';
+  try{
+    const r=await window.Capacitor.Plugins.SpeechRecognition.start({language:'en-US',maxResults:1,prompt:'Say hello Jarvis',partialResults:false,popup:true});
+    heard=(r&&r.matches&&r.matches[0])||'';
+  }catch(e){await wait(2000);return}
+  if(!heard)return;
+  if(!WAKE.test(heard)&&Date.now()>convoUntil){out.textContent='Asleep. Say hello Jarvis.\n(Heard: '+heard+')';return}
+  const q=heard.replace(WAKE,'').replace(/^[\s,.]+/,'').trim()||'hello';
+  if(/stop listening/i.test(q)){paused=true;out.textContent='Paused. Tap the face to resume.';setS('');await say('Okay, pausing.');return}
+  if(/goodbye|good bye|go to sleep/i.test(q)){convoUntil=0;out.textContent='Sleeping. Say hello Jarvis to wake me.';setS('');await say('Goodbye. Say hello Jarvis to wake me.');return}
+  out.textContent='You: '+q+'\nThinking...';setS('thinking');
+  let a;try{a=await brain(q)}catch(e){a='Error: '+(e.message||e)}
+  out.textContent='You: '+q+'\nJarvis: '+a;setS('speaking');
+  await say(a);convoUntil=Date.now()+180000;
+}
+    </script>
+<script>
+async function loop(){
+  if(running)return;running=true;
+  try{await window.Capacitor.Plugins.SpeechRecognition.requestPermissions()}catch(e){}
+  while(!paused){await turn();await wait(300)}
+  running=false;
+}
+document.getElementById('hud').onclick=()=>{if(paused){paused=false;loop()}};
+setTimeout(loop,1500);
+</script>
