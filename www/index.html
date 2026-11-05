@@ -92,4 +92,24 @@ brain=async function(q){
   }
   return _brain1(q);
 };
-</script>
+</script><script>
+const _brain2=brain;
+brain=async function(q){
+  const l=q.toLowerCase();
+  const m=l.match(/remind me in (\d+)\s*(second|minute|hour)s?\s*(?:to|that)?\s*(.*)/);
+  if(m){
+    const LN=window.Capacitor.Plugins.LocalNotifications;
+    if(!LN) return 'Reminder plugin not found.';
+    const n=parseInt(m[1],10);
+    const ms=n*({second:1000,minute:60000,hour:3600000}[m[2]]);
+    const what=(m[3]||'').trim()||'your reminder';
+    try{
+      const p=await LN.requestPermissions();
+      if(p.display!=='granted') return 'Please allow notifications for Jarvis, then ask again.';
+      await LN.schedule({notifications:[{id:Date.now()%2147483647,title:'Jarvis reminder',body:what,schedule:{at:new Date(Date.now()+ms),allowWhileIdle:true}}]});
+      return 'Okay, I will remind you in '+n+' '+m[2]+(n>1?'s':'')+' to '+what+'.';
+    }catch(e){return 'Reminder failed: '+(e.message||e)}
+  }
+  return _brain2(q);
+};
+    </script>
