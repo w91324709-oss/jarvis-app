@@ -180,3 +180,22 @@ function setS(s){document.body.className=s}
 document.getElementById('hud').onclick=()=>{if(paused){paused=false;loop()}};
 setTimeout(loop,1500);
 </script>
+<script>
+const _brain3=brain;
+brain=async function(q){
+  const l=q.toLowerCase().trim();
+  let mem=[];
+  try{mem=JSON.parse(localStorage.getItem('mem')||'[]')}catch(e){}
+  const save=()=>{try{localStorage.setItem('mem',JSON.stringify(mem.slice(-30)))}catch(e){}};
+  if(/^(please )?remember( that)? /.test(l)){
+    const f=q.replace(/^(please )?remember( that)? /i,'').trim();
+    if(!f)return 'What should I remember?';
+    mem.push(f);save();return 'Okay, I will remember that.';
+  }
+  if(/what do you remember|what did i tell you/.test(l))return mem.length?('I remember: '+mem.slice(-10).join('. ')+'.'):'I do not remember anything yet.';
+  if(/forget everything|clear (your )?memory/.test(l)){mem=[];save();return 'Okay, I have forgotten everything.'}
+  const ACT=/vibrate|battery|what time|the time|^play |volume|remind me in/;
+  if(mem.length&&!ACT.test(l))return _brain0('Facts the user told you earlier (use them if relevant): '+mem.slice(-20).join('. ')+'. The user now says: '+q);
+  return _brain3(q);
+};
+</script>
