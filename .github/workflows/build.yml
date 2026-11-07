@@ -15,6 +15,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Restore signing key
+        env:
+          KS: ${{ secrets.DEBUG_KEYSTORE }}
+        run: |
+          mkdir -p ~/.android
+          echo "$KS" | base64 -d > ~/.android/debug.keystore
+          test -s ~/.android/debug.keystore
       - run: npm install
       - run: npx cap add android
       - run: chmod +x android/gradlew
