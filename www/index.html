@@ -151,3 +151,32 @@ async function loop(){
 document.getElementById('hud').onclick=()=>{if(paused){paused=false;loop()}};
 setTimeout(loop,1500);
 </script>
+<style>
+.core{display:none}
+body{--c:#1e5bff;--p:3s}
+body.listening{--c:#00e5a0;--p:1.2s}
+body.thinking{--c:#ffb020;--p:.6s}
+body.speaking{--c:#4aa8ff;--p:.35s}
+#hud{width:min(72vw,340px);height:min(72vw,340px);stroke:var(--c);filter:drop-shadow(0 0 8px var(--c))}
+#hud .d{fill:var(--c)}
+#hud .f{fill:var(--c);fill-opacity:.25}
+#hud .a,#hud .b,#hud .h{transform-box:view-box;transform-origin:100px 100px}
+#hud .a{animation:rot 24s linear infinite}
+#hud .b{animation:rot 16s linear infinite reverse}
+#hud .h{animation:pul var(--p) ease-in-out infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes pul{0%,100%{transform:scale(.92);opacity:.8}50%{transform:scale(1.08);opacity:1}}
+</style>
+<script>
+const hud=document.createElement('div');
+hud.innerHTML='<svg id="hud" viewBox="0 0 200 200" fill="none">'
++'<circle cx="100" cy="100" r="95" stroke-width="5" stroke-dasharray="1 5.9" opacity=".6"/>'
++'<path d="M20 36V20H36M164 20H180V36M180 164V180H164M36 180H20V164" stroke-width="1.5" opacity=".8"/>'
++'<g class="a"><circle cx="100" cy="100" r="80" stroke-width="3" stroke-dasharray="150 70 90 60" stroke-linecap="round"/><circle class="d" cx="100" cy="20" r="2.5"/><circle class="d" cx="170" cy="140" r="2.5"/></g>'
++'<g class="b"><circle cx="100" cy="100" r="62" stroke-width="1" stroke-dasharray="3 4"/><circle class="d" cx="162" cy="100" r="2"/><circle class="d" cx="46" cy="154" r="2"/></g>'
++'<g class="h"><polygon class="f" points="100,70 126,85 126,115 100,130 74,115 74,85" stroke-width="2.5"/><polygon points="100,82 116,91 116,109 100,118 84,109 84,91" stroke-width="1" stroke-dasharray="2 2"/></g></svg>';
+document.body.insertBefore(hud,document.querySelector('h1'));
+function setS(s){document.body.className=s}
+document.getElementById('hud').onclick=()=>{if(paused){paused=false;loop()}};
+setTimeout(loop,1500);
+</script>
