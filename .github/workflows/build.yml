@@ -22,14 +22,18 @@ jobs:
           mkdir -p ~/.android
           echo "$KS" | base64 -d > ~/.android/debug.keystore
           test -s ~/.android/debug.keystore
-          keytool -list -keystore ~/.android/debug.keystore -storepass android | grep -i fingerprint
       - run: npm install
       - run: npx cap add android
       - run: chmod +x android/gradlew
       - run: cd android && ./gradlew assembleDebug
-      - name: Show APK signature
-        run: keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk | grep -i sha256
+      - name: Re-sign with my key
+        run: |
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          APKSIGNER=$(ls -d "$SDK"/build-tools/*/apksigner | sort -V | tail -1)
+          mkdir -p signed
+          "$APKSIGNER" sign --ks ~/.android/debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --out signed/app-debug.apk android/app/build/outputs/apk/debug/app-debug.apk
+          "$APKSIGNER" verify --print-certs signed/app-debug.apk | grep -i "SHA-256"
       - uses: actions/upload-artifact@v4
         with:
           name: jarvis-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: signed/app-debug.apk
