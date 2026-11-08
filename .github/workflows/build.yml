@@ -22,10 +22,13 @@ jobs:
           mkdir -p ~/.android
           echo "$KS" | base64 -d > ~/.android/debug.keystore
           test -s ~/.android/debug.keystore
+          keytool -list -keystore ~/.android/debug.keystore -storepass android | grep -i fingerprint
       - run: npm install
       - run: npx cap add android
       - run: chmod +x android/gradlew
       - run: cd android && ./gradlew assembleDebug
+      - name: Show APK signature
+        run: keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk | grep -i sha256
       - uses: actions/upload-artifact@v4
         with:
           name: jarvis-apk
