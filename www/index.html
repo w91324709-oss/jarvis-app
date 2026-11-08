@@ -205,4 +205,23 @@ brain=async function(q){
 <script>
 (function(){const v=document.createElement('div');v.textContent='v3';v.style.cssText='position:fixed;bottom:10px;right:14px;opacity:.4;font-size:12px';document.body.appendChild(v)})();
 </script>
+<script>
+const _brain4=brain;
+brain=async function(q){
+  const l=q.toLowerCase().trim();
+  const num=s=>{const d=s.replace(/[\s\-().]/g,'');return /^\+?\d{5,15}$/.test(d)?d:null};
+  const AL=window.Capacitor.Plugins.AppLauncher;
+  let m=l.match(/^(?:call|phone|dial)\s+(.+)$/);
+  if(m&&num(m[1])){
+    try{await AL.openUrl({url:'tel:'+num(m[1])});return 'Opening the dialer. Tap call to confirm.'}
+    catch(e){return 'Could not open the dialer: '+(e.message||e)}
+  }
+  m=q.match(/^(?:text|message|sms)\s+(.+?)\s+(?:saying|that says|and say|say)\s+(.+)$/i);
+  if(m&&num(m[1])){
+    try{await AL.openUrl({url:'sms:'+num(m[1])+'?body='+encodeURIComponent(m[2])});return 'Opening messages. Tap send to confirm.'}
+    catch(e){return 'Could not open messages: '+(e.message||e)}
+  }
+  return _brain4(q);
+};
+</script>
 
