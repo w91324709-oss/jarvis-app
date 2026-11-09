@@ -224,4 +224,48 @@ brain=async function(q){
   return _brain4(q);
 };
 </script>
+<script>
+window.QUIET=localStorage.getItem('quiet')!=='0';
+async function listenOnce(){
+  const S=window.Capacitor.Plugins.SpeechRecognition;
+  if(!window.QUIET){
+    const r=await S.start({language:'en-US',maxResults:1,prompt:'Say hello Jarvis',partialResults:false,popup:true});
+    return (r&&r.matches&&r.matches[0])||'';
+  }
+  let best='',done;
+  const stopped=new Promise(r=>done=r);
+  await S.removeAllListeners();
+  await S.addListener('partialResults',d=>{if(d&&d.matches&&d.matches[0])best=d.matches[0]});
+  await S.addListener('listeningState',d=>{if(d&&d.status==='stopped')done()});
+  try{await S.start({language:'en-US',maxResults:1,partialResults:true,popup:false})}
+  catch(e){await S.removeAllListeners();throw e}
+  await Promise.race([stopped,wait(12000)]);
+  await wait(300);
+  try{await S.stop()}catch(e){}
+  await S.removeAllListeners();
+  return best;
+}
+document.getElementById('hud').onclick=()=>{
+  if(paused){paused=false;loop();return}
+  window.QUIET=!window.QUIET;
+  try{localStorage.setItem('quiet',window.QUIET?'1':'0')}catch(e){}
+  out.textContent=window.QUIET?'Quiet listening ON':'Quiet listening OFF (pop-up mode)';
+};
+</script>
+<script>
+async function turn(){
+  setS('listening');
+  let heard='';
+  try{heard=await listenOnce()}catch(e){await wait(2000);return}
+  if(!heard)return;
+  if(!WAKE.test(heard)&&Date.now()>convoUntil){out.textContent='Asleep. Say hello Jarvis.\n(Heard: '+heard+')';return}
+  const q=heard.replace(WAKE,'').replace(/^[\s,.]+/,'').trim()||'hello';
+  if(/stop listening/i.test(q)){paused=true;out.textContent='Paused. Tap the face to resume.';setS('');await say('Okay, pausing.');return}
+  if(/goodbye|good bye|go to sleep/i.test(q)){convoUntil=0;out.textContent='Sleeping. Say hello Jarvis to wake me.';setS('');await say('Goodbye. Say hello Jarvis to wake me.');return}
+  out.textContent='You: '+q+'\nThinking...';setS('thinking');
+  let a;try{a=await brain(q)}catch(e){a='Error: '+(e.message||e)}
+  out.textContent='You: '+q+'\nJarvis: '+a;setS('speaking');
+  await say(a);convoUntil=Date.now()+180000;
+}
+    </script>
 
