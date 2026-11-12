@@ -268,4 +268,22 @@ async function turn(){
   await say(a);convoUntil=Date.now()+180000;
 }
     </script>
+<script>
+const _brain7=brain;
+brain=async function(q){
+  const l=q.toLowerCase().trim().replace(/[.!?]+$/,'');
+  if(l==='flash test'||l==='flashlight test'){
+    const F=window.Capacitor.Plugins.CapacitorFlash;
+    if(!F)return 'Flashlight plugin not found.';
+    const o=[];
+    const s=x=>JSON.stringify(x).replace(/[{}"]/g,'');
+    try{o.push('available '+s(await F.isAvailable()))}catch(e){o.push('available error '+(e.message||e))}
+    try{await F.switchOn({intensity:1});o.push('switch on ok')}catch(e){o.push('switch on error '+(e.message||e))}
+    try{o.push('state '+s(await F.isSwitchedOn()))}catch(e){o.push('state error '+(e.message||e))}
+    setTimeout(()=>{try{F.switchOff()}catch(e){}},5000);
+    return o.join('. ')+'.';
+  }
+  return _brain7(q);
+};
+</script>
 
